@@ -1,0 +1,29 @@
+{
+  "name": "maronn-task-generate",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "setup": "bash scripts/setup.sh",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://local_proxy@127.0.0.1:27076/git/maronnjapan/maronn-task-generate"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "hono": "^4.12.5"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260301.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18",
+    "wrangler": "^4.70.0"
+  }
+}

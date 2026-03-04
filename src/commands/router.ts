@@ -88,5 +88,6 @@ async function handleConditionInput(
     blogPipeline,
     currentDate,
     dayOfWeek,
+    userIntent: text,
   });
 }

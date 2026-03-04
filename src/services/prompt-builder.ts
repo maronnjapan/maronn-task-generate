@@ -14,6 +14,7 @@ type BuildPromptParams = {
   blogPipeline: BlogItem[];
   currentDate: string;
   dayOfWeek: string;
+  userIntent?: string;
 };
 
 export type { BuildPromptParams };
@@ -22,7 +23,7 @@ export type { BuildPromptParams };
  * LLM に貼るためのプロンプトを生成する。
  */
 export function buildPrompt(params: BuildPromptParams): string {
-  const { condition, recentLogs, blogPipeline, currentDate, dayOfWeek } = params;
+  const { condition, recentLogs, blogPipeline, currentDate, dayOfWeek, userIntent } = params;
 
   const cycles = CYCLE_MAP[condition.level] ?? "3サイクル（30-45分）";
 
@@ -43,6 +44,10 @@ export function buildPrompt(params: BuildPromptParams): string {
           .join("\n")
       : "  - 現在進行中のテーマなし";
 
+  const intentSection = userIntent
+    ? `\n## 今日やりたいこと（ユーザーの意向）\n${userIntent}\n※ 上記が含まれる場合はこの意向を優先してタスクに組み込んでください\n`
+    : "";
+
   return `あなたは学習コーチです。以下の情報をもとに、今日やるべきタスクを「サイクル」単位で提案してください。
 
 ## サイクルとは
@@ -54,14 +59,15 @@ export function buildPrompt(params: BuildPromptParams): string {
 - 日付: ${currentDate}（${dayOfWeek}）
 - コンディション: ${condition.level}/5（${condition.reason}）
 - 推奨: ${cycles}
-
+${intentSection}
 ## 直近の学習履歴
 ${historyText}
 
 ## 学習軸1: 受験勉強（数学・英語）
-数学の単元: 二次関数、確率、微分積分、ベクトル、数列
-英語の単元: 文法、長文読解、リスニング、単語・熟語
-※ 履歴を見てバランスよく配分してください
+※ 具体的な単元・内容は「今日やりたいこと」と「直近の学習履歴」をもとに決めてください
+- やりたいことが明示されていればそれを優先
+- 履歴から最近取り組んでいない教科・単元を補完
+- どちらも手がかりがなければバランスよく配分
 
 ## 学習軸2: 認証認可ブログ
 ${pipelineText}
@@ -74,7 +80,7 @@ ${pipelineText}
 - 2軸（受験勉強 / ブログ）の組み合わせはコンディションに応じて自由に判断
 - コンディション1-2: 受動的タスク優先（読む・見る・復習）
 - コンディション4-5: 能動的タスク優先（問題を解く・検証する・書く）
-- 履歴を見て、最近やっていない教科やテーマを優先
+- 履歴とユーザーの意向を踏まえて具体的なタスクを決定する
 
 ## 出力フォーマット
 📊 コンディション: {level}/5
@@ -92,14 +98,16 @@ ${pipelineText}
  * LINE 返信用メッセージ全体を組み立てる。
  */
 export function buildLineResponse(params: BuildPromptParams): string {
-  const { condition, currentDate, dayOfWeek } = params;
+  const { condition, currentDate, dayOfWeek, userIntent } = params;
   const cycles = CYCLE_MAP[condition.level] ?? "3サイクル（30-45分）";
   const prompt = buildPrompt(params);
+
+  const intentLine = userIntent ? `💬 意向: ${userIntent}\n` : "";
 
   return `📋 今日のコンテキスト（${currentDate} ${dayOfWeek}）
 コンディション: ${condition.level}/5（${condition.reason}）
 🔄 推奨: ${cycles}
-
+${intentLine}
 以下を Claude 等に貼ってください👇
 ─────────────────
 ${prompt}

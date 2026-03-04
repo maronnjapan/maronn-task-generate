@@ -1,0 +1,11 @@
+name = "input-cycle-bot"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+[ai]
+binding = "AI"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "input-cycle-bot-db"
+database_id = ""  # wrangler d1 create 後に記入
